@@ -9,5 +9,5 @@
 ----
 
 <br/><br/><br/>
-<img src="assets/pok.png" alt="Epitech Technology Logo" title="Epitech Technology Logo" width=300 height=100>
+<img src="assets/pok.png" alt="POC Logo" title="POC Logo" width=300 height=100>
 <br/>
