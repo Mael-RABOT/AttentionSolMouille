@@ -1,5 +1,6 @@
 SRC	=	main.py
-EXE	=	run.py
+
+EXE	=	AttentionSolMouille
 
 all:	$(EXE)
 
