@@ -1,3 +1,5 @@
+import torchaudio.datasets
+
 import neural_network
 import torch
 import torchvision
@@ -9,18 +11,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 from torchvision import transforms
 from torchaudio.datasets import SPEECHCOMMANDS
+
 from tqdm import tqdm
 import neural_network
 
 class Application:
-    def __init__(self, lr, epoch, batch_size, model_path):
-        self.model = neural_network.NeuralNetwork()
+    def __init__(self, lr=0.00001, epoch=25, batch_size=32, model_path="./save/model_save.asm"):
+        self.model = None
         self.lr = lr
         self.epoch = epoch
         self.batch_size = batch_size
         self.model_path = model_path
-        self.train_set = SPEECHCOMMANDS(root="./datasets", train=True, download=True, transforms=transforms.ToTensor())
-        self.test_set = SPEECHCOMMANDS(root="./datasets", train=False, download=True, transforms=transforms.ToTensor())
+        self.train_set = SPEECHCOMMANDS(root="./datasets", download=True, subset="training")
+        self.test_set = SPEECHCOMMANDS(root="./datasets", download=True, subset="testing")
         self.train_loader = torch.utils.data.DataLoader(self.train_set, batch_size=self.batch_size, shuffle=True)
 
     def save_model(self):
