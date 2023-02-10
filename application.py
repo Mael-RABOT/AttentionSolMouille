@@ -16,7 +16,7 @@ from tqdm import tqdm
 import neural_network
 
 class Application:
-    def __init__(self, lr=0.00001, epoch=25, batch_size=32, model_path="./save/model_save.asm"):
+    def __init__(self, lr=0.00001, epoch=400, batch_size=32, model_path="./save/model_save.astm"):
         self.model = None
         self.lr = lr
         self.epoch = epoch
