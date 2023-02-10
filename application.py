@@ -17,7 +17,8 @@ import neural_network
 
 class Application:
     def __init__(self, lr=0.00001, epochs=400, batch_size=32, model_path="./save/model_save.astm"):
-        self.model = neural_network.NeuralNetwork()
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model = neural_network.NeuralNetwork().to(self.device)
         self.lr = lr
         self.epochs = epochs
         self.batch_size = batch_size
@@ -25,17 +26,17 @@ class Application:
         self.train_set = SPEECHCOMMANDS(root="./datasets", download=True, subset="training")
         self.test_set = SPEECHCOMMANDS(root="./datasets", download=True, subset="testing")
         self.train_loader = torch.utils.data.DataLoader(self.train_set, batch_size=self.batch_size, shuffle=True)
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def train_model(self):
         loss_function = torch.nn.CrossEntropyLoss()
         optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
         for i in tqdm(range(self.epochs)):
-            pred = self.model.forward()
-            loss = loss_function(pred, pred)
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+            for audio, label in tqdm(self.train_loader):
+                pred = self.model.forward(audio)
+                loss = loss_function(pred, label)
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
         return 0
 
     def save_model(self):
@@ -50,3 +51,4 @@ class Application:
         return self.model.forward(input)
 
 app = Application()
+app.train_model()
