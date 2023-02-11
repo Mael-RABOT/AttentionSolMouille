@@ -13,14 +13,11 @@ NB_FILES = 5
 
 def record_audio(wave_output_filename=WAVE_OUTPUT_FILENAME, nb=0):
     audio = pyaudio.PyAudio()
-
-    stream = audio.open(format=FORMAT, channels=CHANNELS,
-                        rate=RATE, input=True,
-                        frames_per_buffer=CHUNK)
+    stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
     print(f"[{nb}] recording...")
     frames = []
 
-    for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+    for _ in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
         data = stream.read(CHUNK)
         frames.append(data)
     print(f"[{nb}] finished recording")
@@ -29,12 +26,12 @@ def record_audio(wave_output_filename=WAVE_OUTPUT_FILENAME, nb=0):
     stream.close()
     audio.terminate()
 
-    waveFile = wave.open(wave_output_filename, 'wb')
-    waveFile.setnchannels(CHANNELS)
-    waveFile.setsampwidth(audio.get_sample_size(FORMAT))
-    waveFile.setframerate(RATE)
-    waveFile.writeframes(b''.join(frames))
-    waveFile.close()
+    wave_file = wave.open(wave_output_filename, 'wb')
+    wave_file.setnchannels(CHANNELS)
+    wave_file.setsampwidth(audio.get_sample_size(FORMAT))
+    wave_file.setframerate(RATE)
+    wave_file.writeframes(b''.join(frames))
+    wave_file.close()
 
 for i in range(NB_FILES):
     pass
