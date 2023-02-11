@@ -160,7 +160,7 @@ def handler(signum, frame):
 
 
 def launch_game() -> None:
-    app = application.Application(model_path="./save/model_save_3.astm", epochs=5)
+    app = application.Application(model_path="./save/model_save_3.astm", epochs=5, batch_size=256)
     app.load_trainloader()
     app.train_model()
     app.save_model()
