@@ -7,17 +7,17 @@ CHANNELS = 2
 RATE = 16000
 CHUNK = 1024
 RECORD_SECONDS = 2
-WAVE_OUTPUT_FILENAME = "file.wav"
+WAVE_OUTPUT_FILENAME = "file"
 TIME_BETWEEN_RECORDS = 5
 NB_FILES = 5
 
-def record_audio(wave_output_filename=WAVE_OUTPUT_FILENAME, nb=0, nb_files=0):
+def record_audio(wave_output_filename, nb, nb_files, record_seconds):
     audio = pyaudio.PyAudio()
     stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
     print(f"[{nb}/{nb_files}] recording...")
     frames = []
 
-    for _ in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+    for _ in range(0, int(RATE / CHUNK * record_seconds)):
         data = stream.read(CHUNK)
         frames.append(data)
     print(f"[{nb}/{nb_files}] finished recording")
@@ -33,12 +33,15 @@ def record_audio(wave_output_filename=WAVE_OUTPUT_FILENAME, nb=0, nb_files=0):
     wave_file.writeframes(b''.join(frames))
     wave_file.close()
 
-def start_record(nb_files=0):
+def start_record(nb_files=NB_FILES, record_seconds=RECORD_SECONDS, time_between_records=TIME_BETWEEN_RECORDS):
+    if nb_files == 0:
+        print("Nothing to do")
+        return
     for i in range(nb_files):
-        record_audio("file" + str(i + 1) + ".wav", i + 1, nb_files)
-        if i < nb_files - 1:
+        record_audio(WAVE_OUTPUT_FILENAME + str(i + 1) + ".wav", i + 1, nb_files, record_seconds)
+        if time_between_records != 0 and i < nb_files - 1:
             print("wait...")
-            time.sleep(TIME_BETWEEN_RECORDS)
+            time.sleep(time_between_records)
     print("Done!")
 
-#start_record(NB_FILES)
+#start_record(NB_FILES, RECORD_SECONDS, TIME_BETWEEN_RECORDS)
