@@ -1,7 +1,6 @@
 import tkinter
 from tkinter import *
 from random import randint
-from time import sleep
 
 ARR_SIZE = 10
 EMPTY =  0
