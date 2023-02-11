@@ -72,20 +72,6 @@ class Application:
         print("sukssèsfoule trèning")
         return 0
 
-    def execute_predict(self, input):
-        i = 0
-        for audio, label in self.test_loader:
-            if i > 0:
-                return
-            audio = audio.to(self.device)
-            audio = transform(audio)
-            print(len(label))
-            print(self.model.forward(audio).shape)
-            i += 1
-        #pred = self.model.forward(audio)
-        #print(pred)
-        return 0
-
     def save_model(self):
         torch.save(self.model.state_dict(), self.model_path)
         print("modèle az bin saivèd")
@@ -109,8 +95,9 @@ class Application:
     def execute_predict(self, path):
         waveform, sample_rate = torchaudio.load(path)
         waveform = waveform.unsqueeze(1)
+        waveform = transform(waveform)
         label = self.model.forward(waveform)
-        return int(label[0][0].argmax(dim=0))
+        return label[0][0].argmax(dim=0).item()
 
     def transform(self, inpout):
         return

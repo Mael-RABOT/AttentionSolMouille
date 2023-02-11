@@ -31,9 +31,11 @@ PAUSED = True
 CHARACT = None
 OBSTACLES_NUM = 5
 
+
 def change_pause_status() -> None:
     global PAUSED
     PAUSED = not PAUSED
+
 
 def spawn_player(Map: list[list[int]], PlayerPos: list[int, int]=None) -> list[int, int]:
     if PlayerPos is not None:
@@ -41,6 +43,7 @@ def spawn_player(Map: list[list[int]], PlayerPos: list[int, int]=None) -> list[i
     PlayerPos = [randint(0, ARR_SIZE - 1), randint(0, ARR_SIZE - 1)]
     Map[PlayerPos[0]][PlayerPos[1]] = PLAYER
     return PlayerPos
+
 
 def InputSelector(Window, app) -> int:
     Input = None
@@ -52,6 +55,7 @@ def InputSelector(Window, app) -> int:
         if Input == 30 or Input == 5 or Input == 15 or Input == 22:
                 Input = MOVE_SET_DICT[str(Input)]
     return Input
+
 
 def MovePlayer(Map: list[list[int]], PlayerPos: list[int, int], PlayerAction: int, MainCanvas: tkinter.Canvas, Player: any) -> bool:
     PosBackup = [PlayerPos[i] for i in range(len(PlayerPos))]
@@ -73,16 +77,19 @@ def MovePlayer(Map: list[list[int]], PlayerPos: list[int, int], PlayerAction: in
     Map[PlayerPos[0]][PlayerPos[1]] = PLAYER
     return True
 
+
 def CheckPlot(Map: list[list[int]], Obstacle: list[list[int, int]], PlayerPos: list[int, int]) -> bool:
     if [PlayerPos[1], PlayerPos[0]] in Obstacle:
         return True
     return False
+
 
 def AddObstacle(Obstacle: list[list[int, int]], PlayerPos: list[int, int]) -> None:
     ObstaclePos = [randint(1, ARR_SIZE - 2), randint(1, ARR_SIZE - 2)]
     while ObstaclePos in Obstacle and ObstaclePos == PlayerPos:
         ObstaclePos = [randint(1, ARR_SIZE - 2), randint(1, ARR_SIZE - 2)]
     Obstacle.append(ObstaclePos)
+
 
 def game_loop(Window: tkinter.Tk, MainFrame: tkinter.Frame, enemy: bool=False, ObstacleNumber: int=OBSTACLES_NUM) -> None:
     Map = [[0 for j in range(ARR_SIZE)] for i in range(ARR_SIZE)]
@@ -137,6 +144,7 @@ def game_loop(Window: tkinter.Tk, MainFrame: tkinter.Frame, enemy: bool=False, O
             if CheckPlot(Map, Obstacle, PlayerPos):
                 exit()
 
+
 def handler(signum, frame):
     message = "Do you really want to exit y/n "
     print(message, end="", flush=True)
@@ -150,7 +158,13 @@ def handler(signum, frame):
         print(" " * len(message), end="", flush=True)
         print("    ", end="\r", flush=True)
 
+
 def launch_game() -> None:
+    app = application.Application(model_path="./save/model_save_3.astm", epochs=5)
+    app.load_trainloader()
+    app.train_model()
+    app.save_model()
+    app.test()
     Window = Tk()
     Window.title("Attention sol mouillé")
     Window.geometry("1000x1100")
@@ -166,13 +180,16 @@ def launch_game() -> None:
     game_loop(Window, MainFrame)
     Window.mainloop()
 
+
 def RightButtonF() -> None:
    global CHARACT
    CHARACT = 'clement'
 
+
 def LeftButtonF() -> None:
     global CHARACT
     CHARACT = 'alex'
+
 
 def ChooseCharacter() -> None:
     global CHARACT
@@ -206,5 +223,6 @@ def ChooseCharacter() -> None:
     WindowCharacter.destroy()
     WindowCharacter.mainloop()
     launch_game()
+
 
 ChooseCharacter()
