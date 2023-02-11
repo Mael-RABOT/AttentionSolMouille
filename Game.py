@@ -13,6 +13,8 @@ from tkinter import *
 from random import randint
 import subprocess
 import sys
+import signal
+import readchar
 
 import application
 import microphone
@@ -23,7 +25,7 @@ PLAYER = 1
 ENEMY =  7
 WALL =   5
 MOVE_SET = [0, 1, 2, 3]
-MOVE_SET_DICT = {"30" : MOVE_SET[0], "5" : MOVE_SET[1], "15" : MOVE_SET[2], "22" : MOVE_SET[0]}
+MOVE_SET_DICT = {"30" : MOVE_SET[0], "5" : MOVE_SET[1], "15" : MOVE_SET[2], "22" : MOVE_SET[3]}
 ENTITY_SET = {"player": PLAYER, "enemy": ENEMY}
 LIVES = 3
 PAUSED = True
@@ -96,7 +98,9 @@ def InputSelector(Window, app) -> int:
         Window.update()
         microphone.start_record(1)
         Input = app.execute_predict("./assets/file1.wav")
-        Input = MOVE_SET_DICT[Input]
+        print(Input)
+        if Input == 30 or Input == 5 or Input == 15 or Input == 22:
+                Input = MOVE_SET_DICT[str(Input)]
     return Input
 
 def MovePlayer(Map: list[int, int], PlayerPos: list[int, int], PlayerAction: int, MainCanvas: tkinter.Canvas, Player: any) -> bool:
@@ -203,19 +207,27 @@ def gloop(Map: list[int, int], LIVES: int=3, enemy: bool=True, show_in_term: boo
                 subprocess.run("clear")
                 print("GAME OVER")
 
+def handler(signum, frame):
+    message = "Do you really want to exit y/n "
+    print(message, end="", flush=True)
+    res = readchar.readchar()
+    if res == 'y':
+        app.save_model()
+        print("")
+        exit(1)
+    else:
+        print("", end="\r", flush=True)
+        print(" " * len(message), end="", flush=True)
+        print("    ", end="\r", flush=True)
+
+
+signal.signal(signal.SIGINT, handler)
+
 def launch_game(Map: list[int, int]) -> None:
-    try:
-        app = application.Application(model_path=sys.argv[1])
-        app.load_trainloader()
-        app.load_model()
-    except IndexError:
-        app = application.Application()
-        app.load_trainloader()
-        app.train_model()
-    print(app.labels.index("up"))
-    print(app.labels.index("down"))
-    print(app.labels.index("left"))
-    print(app.labels.index("right"))
+    app = application.Application(model_path=sys.argv[1])
+    app.load_trainloader()
+    app.load_model()
+    app.test()
     Window = Tk()
     Window.title("Attention sol mouillé")
     Window.geometry("1000x1100")
@@ -231,6 +243,17 @@ def launch_game(Map: list[int, int]) -> None:
     Window.mainloop()
 
 
-print(sys.argv[1])
 Map = [[0 for j in range(ARR_SIZE)] for i in range(ARR_SIZE)]
 launch_game(Map)
+
+"""
+    try:
+        app = application.Application(model_path=sys.argv[1])
+        app.load_trainloader()
+        app.load_model()
+        app.test()
+    except IndexError:
+        app = application.Application(epochs=50)
+        app.load_trainloader()
+        app.train_model()
+        app.save_model()"""

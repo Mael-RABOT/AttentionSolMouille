@@ -67,6 +67,8 @@ class Application:
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+            if (i % 10 == 0 and i != 0):
+                self.save_model()
         print("sukssèsfoule trèning")
         return 0
 
@@ -94,39 +96,42 @@ class Application:
 
     def test(self):
         correct = 0
-        for data, target in self.test_loader:
-            print(data.shape)
-            data = data.to(self.device)
-            target = target.to(self.device)
+        total = 0
+        for data, target in self.train_loader:
             data = transform(data)
             pred = self.model.forward(data)
-
             pred = pred.argmax(dim=-1)
             correct += pred.squeeze().eq(target).sum().item()
-        print(f"Accuracy: {correct}/{len(self.test_loader.dataset)} ({100. * correct / len(self.test_loader.dataset):.0f}%)\n")
+            total += 1
+        print(
+            f"Accuracy: {correct}/{len(self.train_loader.dataset)} ({100. * correct / len(self.train_loader.dataset):.0f}%)\n")
 
     def execute_predict(self, path):
         waveform, sample_rate = torchaudio.load(path)
         waveform = waveform.unsqueeze(1)
         label = self.model.forward(waveform)
-        return label[0][0].argmax(dim=0)
+        return int(label[0][0].argmax(dim=0))
 
     def transform(self, inpout):
         return
 
-def handler(signum, frame):
-    message = "Do you really want to exit y/n "
-    print(message, end="", flush=True)
-    res = readchar.readchar()
-    if res == 'y':
-        app.save_model()
-        print("")
-        exit(1)
-    else:
-        print("", end="\r", flush=True)
-        print(" " * len(message), end="", flush=True)
-        print("    ", end="\r", flush=True)
-
-
-signal.signal(signal.SIGINT, handler)
 transform = torchaudio.transforms.Resample(orig_freq=16000, new_freq=8000)
+
+"""
+def test(self):
+    correct = 0
+    total = 0
+    for batch in self.train_set:
+        data, merde, target, merde_2, merde_3 = batch
+        print(data.shape)
+        data = data.unsqueeze(1)
+        data = data.to(self.device)
+        data = transform(data)
+        pred = self.model.forward(data)
+        pred = pred[0][0]
+        pred = pred.argmax(dim=-1)
+        if self.labels[pred] == target:
+            correct += 1
+        total += 1
+    print(f"{correct} correct sur {total} total")
+"""
