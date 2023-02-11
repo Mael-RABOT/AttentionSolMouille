@@ -11,9 +11,12 @@ from torchvision import transforms
 import torchaudio
 from tqdm import tqdm
 import neural_network
+import signal
+import readchar
+
 
 class Application:
-    def __init__(self, lr=0.00001, epochs=400, batch_size=32, model_path="./save/model_save.astm"):
+    def __init__(self, lr=0.00001, epochs=200, batch_size=64, model_path="./save/model_save_2.astm"):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = neural_network.NeuralNetwork().to(self.device)
         self.lr = lr
@@ -23,7 +26,9 @@ class Application:
         self.train_set = torchaudio.datasets.SPEECHCOMMANDS(root="./datasets", download=True, subset="training")
         self.labels = sorted(list(set(datapoint[2] for datapoint in self.train_set)))
         self.test_set = torchaudio.datasets.SPEECHCOMMANDS(root="./datasets", download=True, subset="testing")
+        self.labels = sorted(list(set(datapoint[2] for datapoint in self.test_set)))
         self.train_loader = None
+        self.test_loader = None
 
     def get_label(self, index):
         return self.labels[index]
@@ -47,21 +52,36 @@ class Application:
 
     def load_trainloader(self):
         self.train_loader = torch.utils.data.DataLoader(dataset=self.train_set, batch_size=self.batch_size, shuffle=True, collate_fn=self.collate_fn)
+        self.test_loader = torch.utils.data.DataLoader(dataset=self.test_set, batch_size=self.batch_size, shuffle=True, collate_fn=self.collate_fn)
 
     def train_model(self):
+        losses = []
         optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
         for i in tqdm(range(self.epochs)):
             for audio, label in tqdm(self.train_loader):
                 audio = audio.to(self.device)
                 label = label.to(self.device)
-
+                audio = transform(audio)
                 pred = self.model.forward(audio)
-
                 loss = F.nll_loss(pred.squeeze(), label)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-        print("sukssèsfoul trèning")
+        print("sukssèsfoule trèning")
+        return 0
+
+    def execute_predict(self, input):
+        i = 0
+        for audio, label in self.test_loader:
+            if i > 0:
+                return
+            audio = audio.to(self.device)
+            audio = transform(audio)
+            print(len(label))
+            print(self.model.forward(audio).shape)
+            i += 1
+        #pred = self.model.forward(audio)
+        #print(pred)
         return 0
 
     def save_model(self):
@@ -72,10 +92,63 @@ class Application:
         self.model.load_state_dict(torch.load(self.model_path))
         print("modèle az bin laudid")
 
-    def forward(self, input):
-        return self.model.forward(input)
 
+
+
+
+    def number_of_correct(self, pred, target):
+        # count number of correct predictions
+        return pred.squeeze().eq(target).sum().item()
+
+    def get_likely_index(self, tensor):
+        # find most likely label index for each element in the batch
+        return tensor.argmax(dim=-1)
+
+    def test(self):
+        correct = 0
+        for data, target in self.test_loader:
+            data = data.to(self.device)
+            target = target.to(self.device)
+
+            # apply transform and model on whole batch directly on device
+            data = transform(data)
+            output = self.model.forward(data)
+
+            pred = self.get_likely_index(output)
+            correct += self.number_of_correct(pred, target)
+        print(
+            f"\nTest Epoch: {self.epochs}\tAccuracy: {correct}/{len(self.test_loader.dataset)} ({100. * correct / len(self.test_loader.dataset):.0f}%)\n")
+
+
+
+def handler(signum, frame):
+    message = "Do you really want to exit y/n "
+    print(message, end="", flush=True)
+    res = readchar.readchar()
+    if res == 'y':
+        app.save_model()
+        print("")
+        exit(1)
+    else:
+        print("", end="\r", flush=True)
+        print(" " * len(message), end="", flush=True)
+        print("    ", end="\r", flush=True)
+
+
+
+
+
+signal.signal(signal.SIGINT, handler)
 app = Application(epochs=25)
+
+waveform, sample_rate, label, speaker_id, utterance_number = app.train_set[0]
+transform = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=8000)
+
 app.load_trainloader()
 app.train_model()
 app.save_model()
+#app.load_model()
+app.test()
+#app.execute_predict(5)
+#app.test_model()
+#app.train_model()
