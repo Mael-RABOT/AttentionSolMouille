@@ -91,7 +91,7 @@ def AddObstacle(Obstacle: list[list[int, int]], PlayerPos: list[int, int]) -> No
     Obstacle.append(ObstaclePos)
 
 
-def game_loop(Window: tkinter.Tk, MainFrame: tkinter.Frame, enemy: bool=False, ObstacleNumber: int=OBSTACLES_NUM) -> None:
+def game_loop(Window: tkinter.Tk, MainFrame: tkinter.Frame, enemy: bool=False, ObstacleNumber: int=OBSTACLES_NUM, app = None) -> None:
     Map = [[0 for j in range(ARR_SIZE)] for i in range(ARR_SIZE)]
 
     global PAUSED, CHARACT
@@ -139,7 +139,7 @@ def game_loop(Window: tkinter.Tk, MainFrame: tkinter.Frame, enemy: bool=False, O
             except tkinter.TclError:
                 exit()
         if not SkipTurn:
-            PlayerAction = InputSelector()
+            PlayerAction = InputSelector(app)
             MovePlayer(Map, PlayerPos, PlayerAction, MainCanvas, Player)
             if CheckPlot(Map, Obstacle, PlayerPos):
                 exit()
@@ -177,7 +177,7 @@ def launch_game() -> None:
     PlayImage = PhotoImage(file='assets/play_button.png')
     PlayButton = Button(HotbarFrame, image=PlayImage, command=change_pause_status, relief=RAISED, bd=5, width=100, height=100)
     PlayButton.pack(fill=X)
-    game_loop(Window, MainFrame)
+    game_loop(Window, MainFrame, app=app)
     Window.mainloop()
 
 
