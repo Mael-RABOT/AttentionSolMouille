@@ -1,6 +1,7 @@
 import pyaudio
 import wave
 import time
+from tqdm import tqdm
 
 FORMAT = pyaudio.paInt16
 CHANNELS = 2
@@ -37,11 +38,14 @@ def start_record(nb_files=NB_FILES, record_seconds=RECORD_SECONDS, time_between_
     if nb_files == 0:
         print("Nothing to do")
         return
-    for i in range(nb_files):
+    for i in tqdm(range(nb_files)):
         record_audio(WAVE_OUTPUT_FILENAME + str(i + 1) + ".wav", i + 1, nb_files, record_seconds)
         if time_between_records != 0 and i < nb_files - 1:
             print("wait...")
             time.sleep(time_between_records)
-    print("Done!")
+    print("Done!\n")
+    print("Files created:")
+    for i in range(nb_files):
+        print(f"{WAVE_OUTPUT_FILENAME}{str(i + 1)}.wav")
 
 #start_record(NB_FILES, RECORD_SECONDS, TIME_BETWEEN_RECORDS)
