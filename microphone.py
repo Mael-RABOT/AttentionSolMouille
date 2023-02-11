@@ -33,7 +33,7 @@ def record_audio(wave_output_filename=WAVE_OUTPUT_FILENAME, nb=0, nb_files=0):
     wave_file.writeframes(b''.join(frames))
     wave_file.close()
 
-def start_record(nb_files):
+def start_record(nb_files=0):
     for i in range(nb_files):
         record_audio("file" + str(i + 1) + ".wav", i + 1, NB_FILES)
         if i < NB_FILES - 1:
