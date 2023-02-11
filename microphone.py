@@ -49,4 +49,4 @@ def start_record(nb_files=NB_FILES, record_seconds=RECORD_SECONDS, time_between_
     for i in range(nb_files):
         print(f"{FILENAME}{str(i + 1)}.wav")
 
-start_record(1, RECORD_SECONDS, TIME_BETWEEN_RECORDS)
+#start_record(NB_FILES, RECORD_SECONDS, TIME_BETWEEN_RECORDS)
