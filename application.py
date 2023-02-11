@@ -92,33 +92,27 @@ class Application:
         self.model.load_state_dict(torch.load(self.model_path))
         print("modèle az bin laudid")
 
-    def number_of_correct(self, pred, target):
-        return pred.squeeze().eq(target).sum().item()
-
-    def get_likely_index(self, tensor):
-        return tensor.argmax(dim=-1)
-
     def test(self):
         correct = 0
         for data, target in self.test_loader:
             print(data.shape)
             data = data.to(self.device)
             target = target.to(self.device)
-            # apply transform and model on whole batch directly on device
             data = transform(data)
-            output = self.model.forward(data)
+            pred = self.model.forward(data)
 
-            pred = self.get_likely_index(output)
-            correct += self.number_of_correct(pred, target)
-        print(
-            f"\nTest Epoch: {self.epochs}\tAccuracy: {correct}/{len(self.test_loader.dataset)} ({100. * correct / len(self.test_loader.dataset):.0f}%)\n")
+            pred = pred.argmax(dim=-1)
+            correct += pred.squeeze().eq(target).sum().item()
+        print(f"Accuracy: {correct}/{len(self.test_loader.dataset)} ({100. * correct / len(self.test_loader.dataset):.0f}%)\n")
 
     def execute_predict(self, path):
         waveform, sample_rate = torchaudio.load(path)
         waveform = waveform.unsqueeze(1)
         label = self.model.forward(waveform)
-        print(self.labels)
-        print(self.labels[label[0][0].argmax(dim=0)])
+        return label[0][0].argmax(dim=0)
+
+    def transform(self, inpout):
+        return
 
 def handler(signum, frame):
     message = "Do you really want to exit y/n "
@@ -134,20 +128,5 @@ def handler(signum, frame):
         print("    ", end="\r", flush=True)
 
 
-
-
-
 signal.signal(signal.SIGINT, handler)
-app = Application(epochs=25)
-
-waveform, sample_rate, label, speaker_id, utterance_number = app.train_set[0]
-transform = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=8000)
-
-app.load_trainloader()
-#app.train_model()
-#app.save_model()
-app.load_model()
-app.test()
-app.execute_predict("./asm.wav")
-#app.test_model()
-#app.train_model()
+transform = torchaudio.transforms.Resample(orig_freq=16000, new_freq=8000)
