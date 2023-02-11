@@ -92,24 +92,18 @@ class Application:
         self.model.load_state_dict(torch.load(self.model_path))
         print("modèle az bin laudid")
 
-
-
-
-
     def number_of_correct(self, pred, target):
-        # count number of correct predictions
         return pred.squeeze().eq(target).sum().item()
 
     def get_likely_index(self, tensor):
-        # find most likely label index for each element in the batch
         return tensor.argmax(dim=-1)
 
     def test(self):
         correct = 0
         for data, target in self.test_loader:
+            print(data.shape)
             data = data.to(self.device)
             target = target.to(self.device)
-
             # apply transform and model on whole batch directly on device
             data = transform(data)
             output = self.model.forward(data)
@@ -119,7 +113,12 @@ class Application:
         print(
             f"\nTest Epoch: {self.epochs}\tAccuracy: {correct}/{len(self.test_loader.dataset)} ({100. * correct / len(self.test_loader.dataset):.0f}%)\n")
 
-
+    def execute_predict(self, path):
+        waveform, sample_rate = torchaudio.load(path)
+        waveform = waveform.unsqueeze(1)
+        label = self.model.forward(waveform)
+        print(self.labels)
+        print(self.labels[label[0][0].argmax(dim=0)])
 
 def handler(signum, frame):
     message = "Do you really want to exit y/n "
@@ -145,10 +144,10 @@ waveform, sample_rate, label, speaker_id, utterance_number = app.train_set[0]
 transform = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=8000)
 
 app.load_trainloader()
-app.train_model()
-app.save_model()
-#app.load_model()
+#app.train_model()
+#app.save_model()
+app.load_model()
 app.test()
-#app.execute_predict(5)
+app.execute_predict("./asm.wav")
 #app.test_model()
 #app.train_model()
