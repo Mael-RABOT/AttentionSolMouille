@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from torchvision import transforms
 from tqdm import tqdm
-from PIL import Image
+from PIL import Image, ImageTk
 from tkinter import *
 from random import randint
 import subprocess
@@ -20,19 +20,17 @@ EMPTY =  0
 PLAYER = 1
 ENEMY =  7
 WALL =   5
-MOVEMENTS = "UP : 0, DOWN : 1, LEFT : 2, RIGHT : 3"
-MOVE_SET = {0 : [-1, 0], 1 : [+1, 0], 2 : [-1, 0], 3 : [+1, 0]}
+MOVE_SET = [0, 1, 2, 3]
 ENTITY_SET = {"player": PLAYER, "enemy": ENEMY}
 LIVES = 3
+PAUSED = True
 
-def make_window() -> any:
-    Window = Tk()
-    Window.title("Attention sol mouillé")
-    Window.geometry("1080x1080")
-    Window.iconphoto(False, PhotoImage(file='assets/attention.png'))
-    can = Canvas(Window, bg="#000000")
-    can.pack(fill=Y)
-    return Window
+MAIN_FRAME_COLOR = '#000000'
+HOTBAR_COLOR =     '#000000'
+
+def change_pause_status() -> None:
+    global PAUSED
+    PAUSED = not PAUSED
 
 def display_map(Map: list[int, int], clear: bool=True) -> None:
     if clear:
@@ -89,19 +87,96 @@ def check_enemy_proximity(Map: list[int, int], player_pos: list[int, int], enemy
 def fight(LIVES: int) -> None:
     LIVES -= 1
 
-def gloop(Map: list[int, int], LIVES: int=3, enemy=True) -> None:
+def InputSelector() -> int:
+    #Input = AI()
+    Input = int(input("TO BE REPLACE BY AI SELECTION : "))
+    while Input not in MOVE_SET:
+        #Input = AI()
+        Input = int(input("TO BE REPLACE BY AI SELECTION : "))
+    return Input
+
+def MovePlayer(Map: list[int, int], PlayerPos: list[int, int], PlayerAction: int, MainCanvas: tkinter.Canvas, Player: any) -> bool:
+    PosBackup = [PlayerPos[i] for i in range(len(PlayerPos))]
+    Map[PlayerPos[0]][PlayerPos[1]] = EMPTY
+    if PlayerAction == 0 and PlayerPos[0] > 0:
+        MainCanvas.move(Player, 0, -100)
+        PlayerPos[0] = PlayerPos[0] - 1
+    if PlayerAction == 1 and PlayerPos[0] < ARR_SIZE - 1:
+        MainCanvas.move(Player, 0, +100)
+        PlayerPos[0] = PlayerPos[0] +  1
+    if PlayerAction == 2 and PlayerPos[1] > 0:
+        MainCanvas.move(Player, -100, 0)
+        PlayerPos[1] = PlayerPos[1] - 1
+    if PlayerAction == 3 and PlayerPos[1] < ARR_SIZE - 1:
+        MainCanvas.move(Player, 100, 0)
+        PlayerPos[1] = PlayerPos[1] + 1
+    else:
+        return False
+    Map[PlayerPos[0]][PlayerPos[1]] = PLAYER
+    return True
+
+
+def game_loop(Window, MainFrame, Map, enemy=False):
+    global PAUSED, LIVES
+    Game = True
+
+    MainCanvas = Canvas(MainFrame, bg='blue', width=1000, height=1000, bd=0)
+    MainCanvas.pack(fill=BOTH, expand=True, side='top')
+    BackgroundImage = PhotoImage(file='assets/DungeonButNotUgly.png')
+    MainCanvas.create_image(500, 500, image=BackgroundImage, anchor=CENTER)
+    PlayerImage = PhotoImage(file='assets/alex.png')
+    Player = MainCanvas.create_image(50, 50, image=PlayerImage)
+
+    PlayerPos = spawn_player(Map)
+    if enemy:
+        EnemyPos = spawn_enemy(Map, player_pos)
+
+    MainCanvas.move(Player, PlayerPos[1] * 100, PlayerPos[0] * 100)
+
+    while Game:
+        SkipTurn = False
+        try:
+            Window.state()
+        except tkinter.TclError:
+            exit()
+        while PAUSED:
+            Window.update()
+            try:
+                Window.state()
+            except tkinter.TclError:
+                exit()
+        if not SkipTurn:
+            PlayerAction = InputSelector()
+            if not MovePlayer(Map, PlayerPos, PlayerAction, MainCanvas, Player):
+                LIVES -= 1
+                SkipTurn = True
+
+        Window.update()
+        if LIVES <= 0:
+            game = False
+
+#MainCanvas.move(Player, 0.001, 0.001)
+
+def gloop(Map: list[int, int], LIVES: int=3, enemy: bool=True, show_in_term: bool=False) -> None:
+    global PAUSED
     game = True
 
     player_pos = spawn_player(Map)
     if enemy:
         enemy_pos = spawn_enemy(Map, player_pos)
 
-    display_map(Map)
-    print(f"LIVES : {LIVES}")
+    if show_in_term:
+        display_map(Map)
+        print(f"LIVES : {LIVES}")
     while game:
+        while PAUSED:
+            pass
         skip_turn = False
         try:
-            player_action = int(input(f"\n{MOVEMENTS}\n > "))
+            if show_in_term:
+                player_action = int(input(f"\n{MOVEMENTS}\n > "))
+            else:
+                player_action = receive_input()
         except ValueError:
             skip_turn = True
         if not skip_turn:
@@ -115,21 +190,31 @@ def gloop(Map: list[int, int], LIVES: int=3, enemy=True) -> None:
                 change_pos(Map, pos=enemy_pos, action=enemy_action, entity_type="enemy")
                 if check_enemy_proximity(Map, player_pos, enemy_pos):
                     fight(LIVES)
-        display_map(Map, clear=True)
-        print(f"LIVES : {LIVES}")
+        if show_in_term:
+            display_map(Map, clear=True)
+            print(f"LIVES : {LIVES}")
         if LIVES <= 0:
             game = False
-            subprocess.run("clear")
-            print("GAME OVER")
+            if show_in_term:
+                subprocess.run("clear")
+                print("GAME OVER")
 
-def launch_game(Map: list[int, int], init_window: bool=True) -> None:
-    if init_window:
-        Window = make_window()
+def launch_game(Map: list[int, int]) -> None:
+    Window = Tk()
+    Window.title("Attention sol mouillé")
+    Window.geometry("1000x1100")
+    Window.iconphoto(False, PhotoImage(file='assets/attention.png'))
+    MainFrame = Frame(Window, bg=MAIN_FRAME_COLOR, width=1000, height=1000, bd=0)
+    MainFrame.pack(fill=BOTH, expand=True)
+    HotbarFrame = Frame(Window, width=1000, height=100, bg=HOTBAR_COLOR, bd=0)
+    HotbarFrame.pack(fill=BOTH, expand=True)
+    PlayImage = PhotoImage(file='assets/play_button.png')
+    PlayButton = Button(HotbarFrame, image=PlayImage, command=change_pause_status, relief=RAISED, bd=5, width=100, height=100)
+    PlayButton.pack(fill=X)
+    game_loop(Window, MainFrame, Map)
+    Window.mainloop()
 
-    gloop(Map,enemy=False)
 
-    if init_window:
-        Window.mainloop()
 
 Map = [[0 for j in range(ARR_SIZE)] for i in range(ARR_SIZE)]
-launch_game(Map, init_window=False)
+launch_game(Map)
