@@ -55,7 +55,6 @@ class Application:
             for audio, label in tqdm(self.train_loader):
                 audio = audio.to(self.device)
                 label = label.to(self.device)
-                audio = transform(audio)
                 pred = self.model.forward(audio)
                 loss = F.nll_loss(pred.squeeze(), label)
                 optimizer.zero_grad()
