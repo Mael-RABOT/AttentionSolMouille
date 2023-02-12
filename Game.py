@@ -6,13 +6,12 @@ ARR_SIZE = 10
 EMPTY =  0
 PLAYER = 1
 ENEMY =  7
-WALL =   5
+POC =   5
 WATER = 3
 MOVE_SET = [0, 1, 2, 3]
-ENTITY_SET = {"player": PLAYER, "enemy": ENEMY}
 PAUSED = True
 CHARACT = None
-OBSTACLES_NUM = 5
+OBSTACLES_NUM = 10  # ~
 
 def change_pause_status() -> None:
     global PAUSED
@@ -24,6 +23,13 @@ def spawn_player(Map: list[list[int]], PlayerPos: list[int, int]=None) -> list[i
     PlayerPos = [randint(0, ARR_SIZE - 1), randint(0, ARR_SIZE - 1)]
     Map[PlayerPos[0]][PlayerPos[1]] = PLAYER
     return PlayerPos
+
+def spawn_poc(Map, PlayerPos, Obstacle):
+    PoC = [randint(0, ARR_SIZE - 1), randint(0, ARR_SIZE - 1)]
+    while PoC in Obstacle and PoC == PlayerPos:
+        PoC = [randint(0, ARR_SIZE - 1), randint(0, ARR_SIZE - 1)]
+    Map[PoC[0]][PoC[1]] = POC
+    return PoC
 
 def InputSelector() -> int:
     #Input = AI()
@@ -67,7 +73,7 @@ def AddObstacle(Obstacle: list[list[int, int]], PlayerPos: list[int, int]) -> No
 def game_loop(Window: tkinter.Tk, MainFrame: tkinter.Frame, enemy: bool=False, ObstacleNumber: int=OBSTACLES_NUM) -> None:
     Map = [[0 for j in range(ARR_SIZE)] for i in range(ARR_SIZE)]
 
-    global PAUSED, CHARACT
+    global PAUSED, CHARACT, KEY
     Game = True
 
     MainCanvas = Canvas(MainFrame, bg='blue', width=1000, height=1000, bd=0)
@@ -81,6 +87,7 @@ def game_loop(Window: tkinter.Tk, MainFrame: tkinter.Frame, enemy: bool=False, O
     Player = MainCanvas.create_image(50, 50, image=PlayerImage)
 
     WaterImage = PhotoImage(file='assets/Plot.png')
+    PoCImage = PhotoImage(file='assets/MiniPok.png')
 
     PlayerPos = spawn_player(Map)
 
@@ -91,13 +98,29 @@ def game_loop(Window: tkinter.Tk, MainFrame: tkinter.Frame, enemy: bool=False, O
         AddObstacle(Obstacle, PlayerPos)
         WaterArr[i] = MainCanvas.create_image(50, 50, image=WaterImage)
         MainCanvas.move(WaterArr[i], Obstacle[i][0] * 100, Obstacle[i][1] * 100)
+    MiniPoc = MainCanvas.create_image(50, 50, image=PoCImage)
 
     Map[Obstacle[1][0]][Obstacle[1][1]] = WATER
 
-    while PlayerPos in Obstacle:
+    PoC = spawn_poc(Map, PlayerPos, Obstacle)
+    MainCanvas.move(MiniPoc, PoC[0] * 100, PoC[1] * 100)
+
+    while PlayerPos in Obstacle and PlayerPos == PoC:
         PlayerPos = spawn_player(Map,PlayerPos)
 
     MainCanvas.move(Player, PlayerPos[1] * 100, PlayerPos[0] * 100)
+
+    def key_press(event):
+        if event.char == 'z' or event.char == 'w':
+            MovePlayer(Map, PlayerPos, 0, MainCanvas, Player)
+        elif event.char == 's':
+            MovePlayer(Map, PlayerPos, 1, MainCanvas, Player)
+        elif event.char == 'q' or event.char == 'a':
+            MovePlayer(Map, PlayerPos, 2, MainCanvas, Player)
+        elif event.char == 'd':
+            MovePlayer(Map, PlayerPos, 3, MainCanvas, Player)
+
+    Window.bind('<KeyPress>', key_press)
 
     while Game:
         SkipTurn = False
@@ -111,10 +134,16 @@ def game_loop(Window: tkinter.Tk, MainFrame: tkinter.Frame, enemy: bool=False, O
                 Window.state()
             except tkinter.TclError:
                 exit()
+            if CheckPlot(Map, Obstacle, PlayerPos):
+                exit()
+            if PoC == PlayerPos:
+                exit()
         if not SkipTurn:
             PlayerAction = InputSelector()
             MovePlayer(Map, PlayerPos, PlayerAction, MainCanvas, Player)
             if CheckPlot(Map, Obstacle, PlayerPos):
+                exit()
+            if PoC == PlayerPos:
                 exit()
 
 def launch_game() -> None:
