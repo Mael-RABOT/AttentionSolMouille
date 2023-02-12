@@ -97,14 +97,14 @@ class Application:
     def test(self):
         correct = 0
         total = 0
-        for data, target in self.train_loader:
+        for data, target in self.test_loader:
             data = transform(data)
             pred = self.model.forward(data)
             pred = pred.argmax(dim=-1)
             correct += pred.squeeze().eq(target).sum().item()
             total += 1
         print(
-            f"Accuracy: {correct}/{len(self.train_loader.dataset)} ({100. * correct / len(self.train_loader.dataset):.0f}%)\n")
+            f"Accuracy: {correct}/{len(self.test_loader.dataset)} ({100. * correct / len(self.test_loader.dataset):.0f}%)\n")
 
     def execute_predict(self, path):
         waveform, sample_rate = torchaudio.load(path)
@@ -113,8 +113,6 @@ class Application:
         label = self.model.forward(waveform)
         return label[0][0].argmax(dim=0).item()
 
-    def transform(self, inpout):
-        return
 
 transform = torchaudio.transforms.Resample(orig_freq=16000, new_freq=8000)
 

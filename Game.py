@@ -49,7 +49,7 @@ def InputSelector(Window, app) -> int:
     Input = None
     while Input not in MOVE_SET:
         Window.update()
-        microphone.start_record(1)
+        microphone.start_record(nb_files=1, record_seconds=1)
         Input = app.execute_predict("./assets/file1.wav")
         print(Input)
         if Input == 30 or Input == 5 or Input == 15 or Input == 22:
@@ -139,7 +139,7 @@ def game_loop(Window: tkinter.Tk, MainFrame: tkinter.Frame, enemy: bool=False, O
             except tkinter.TclError:
                 exit()
         if not SkipTurn:
-            PlayerAction = InputSelector(app)
+            PlayerAction = InputSelector(Window, app)
             MovePlayer(Map, PlayerPos, PlayerAction, MainCanvas, Player)
             if CheckPlot(Map, Obstacle, PlayerPos):
                 exit()
@@ -190,10 +190,6 @@ def LeftButtonF() -> None:
 
 
 def ChooseCharacter(app=None) -> None:
-    app.load_trainloader()
-    app.train_model()
-    app.save_model()
-    app.test()
     global CHARACT
     WindowCharacter = Tk()
     WindowCharacter.title("Attention sol mouillé")
@@ -226,12 +222,19 @@ def ChooseCharacter(app=None) -> None:
     WindowCharacter.mainloop()
     launch_game(app)
 
+
 def arg_parser(app=None):
     if len(sys.argv) == 1:
         ChooseCharacter(app)
+    app.load_trainloader()
     app.model_path = sys.argv[2]
     if sys.argv[1] == "load":
         app.load_model()
+        app.test()
+    else:
+        app.train_model()
+        app.save_model()
+        app.test()
     ChooseCharacter(app)
 
 
