@@ -95,6 +95,10 @@ def AddObstacle(Obstacle: list[list[int, int]], PlayerPos: list[int, int]) -> No
         ObstaclePos = [randint(1, ARR_SIZE - 2), randint(1, ARR_SIZE - 2)]
     Obstacle.append(ObstaclePos)
 
+def ReversePoc(PoC) -> None:
+    x = PoC[0]
+    PoC[0] = PoC[1]
+    PoC[1] = x
 
 def game_loop(Window: tkinter.Tk, MainFrame: tkinter.Frame, enemy: bool=False, ObstacleNumber: int=OBSTACLES_NUM, app = None) -> None:
     Map = [[0 for j in range(ARR_SIZE)] for i in range(ARR_SIZE)]
@@ -147,6 +151,8 @@ def game_loop(Window: tkinter.Tk, MainFrame: tkinter.Frame, enemy: bool=False, O
             MovePlayer(Map, PlayerPos, 3, MainCanvas, Player)
 
     Window.bind('<KeyPress>', key_press)
+
+    ReversePoc(PoC)
 
     while Game:
         SkipTurn = False

@@ -9,5 +9,6 @@
 ----
 
 <br/><br/><br/>
-<img src="assets/pok.png" alt="POC Logo" title="POC Logo" width=300 height=100>
+<img src="assets/pok.png" alt="POC Logo" title="POC Logo" width=300 height=100>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+<img src="assets/Plot.png" alt="Plot" title="Plot" width=50 height=50>
 <br/>
