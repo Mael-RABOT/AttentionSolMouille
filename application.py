@@ -65,7 +65,6 @@ class Application:
                 self.save_model()
                 self.model = neural_network.NeuralNetwork().to(self.device)
                 self.model_path += "I"
-            i += 1
         print("sukssèsfoule trèning")
         return 0
 

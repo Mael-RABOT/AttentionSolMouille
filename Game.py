@@ -146,14 +146,14 @@ def game_loop(Window: tkinter.Tk, MainFrame: tkinter.Frame, enemy: bool=False, O
 
 
 def handler(signum, frame):
-    message = "Do you really want to exit y/n "
+    message = "tU VeUx eXiT ChAcAl [O/n] "
     print(message, end="", flush=True)
     res = readchar.readchar()
-    if res == 'y':
-         message = "Do you want to save modeL y/n "
+    if res == 'o' or res == 'y':
+         message = "Tu vEuX EnReGiStReR Le mOdElE Bg [Y/n] "
          print(message, end="", flush=True)
          res = readchar.readchar()
-         if res == 'y':
+         if res == 'o' or res == 'y':
             app.save_model()
          exit(1)
     else:
@@ -163,10 +163,6 @@ def handler(signum, frame):
 
 
 def launch_game(app=None) -> None:
-    app.load_trainloader()
-    app.gros_train_sa_mere()
-    app.save_model()
-    app.test()
     Window = Tk()
     Window.title("Attention sol mouillé")
     Window.geometry("1000x1100")
@@ -194,6 +190,10 @@ def LeftButtonF() -> None:
 
 
 def ChooseCharacter(app=None) -> None:
+    app.load_trainloader()
+    app.train_model()
+    app.save_model()
+    app.test()
     global CHARACT
     WindowCharacter = Tk()
     WindowCharacter.title("Attention sol mouillé")
@@ -236,5 +236,5 @@ def arg_parser(app=None):
 
 
 signal.signal(signal.SIGINT, handler)
-app = application.Application(model_path="./save/model_save.astm", epochs=50, batch_size=256)
+app = application.Application(model_path="./save/model_save.astm", epochs=25, batch_size=256)
 arg_parser(app)
