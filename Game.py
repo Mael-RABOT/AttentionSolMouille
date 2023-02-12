@@ -150,19 +150,21 @@ def handler(signum, frame):
     print(message, end="", flush=True)
     res = readchar.readchar()
     if res == 'y':
-        app.save_model()
-        print("")
-        exit(1)
+         message = "Do you want to save modeL y/n "
+         print(message, end="", flush=True)
+         res = readchar.readchar()
+         if res == 'y':
+            app.save_model()
+         exit(1)
     else:
         print("", end="\r", flush=True)
         print(" " * len(message), end="", flush=True)
         print("    ", end="\r", flush=True)
 
 
-def launch_game() -> None:
-    app = application.Application(model_path="./save/model_save_3.astm", epochs=5, batch_size=256)
+def launch_game(app=None) -> None:
     app.load_trainloader()
-    app.train_model()
+    app.gros_train_sa_mere()
     app.save_model()
     app.test()
     Window = Tk()
@@ -191,7 +193,7 @@ def LeftButtonF() -> None:
     CHARACT = 'alex'
 
 
-def ChooseCharacter() -> None:
+def ChooseCharacter(app=None) -> None:
     global CHARACT
     WindowCharacter = Tk()
     WindowCharacter.title("Attention sol mouillé")
@@ -222,7 +224,17 @@ def ChooseCharacter() -> None:
             exit()
     WindowCharacter.destroy()
     WindowCharacter.mainloop()
-    launch_game()
+    launch_game(app)
+
+def arg_parser(app=None):
+    if len(sys.argv) == 1:
+        ChooseCharacter(app)
+    app.model_path = sys.argv[2]
+    if sys.argv[1] == "load":
+        app.load_model()
+    ChooseCharacter(app)
 
 
-ChooseCharacter()
+signal.signal(signal.SIGINT, handler)
+app = application.Application(model_path="./save/model_save.astm", epochs=50, batch_size=256)
+arg_parser(app)

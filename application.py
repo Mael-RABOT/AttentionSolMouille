@@ -30,12 +30,6 @@ class Application:
         self.train_loader = None
         self.test_loader = None
 
-    def get_label(self, index):
-        return self.labels[index]
-
-    def get_index(self, label):
-        return torch.tensor(self.labels.index(label))
-
     def pad_sequence(self, batch):
         batch = [item.t() for item in batch]
         batch = torch.nn.utils.rnn.pad_sequence(batch, batch_first=True, padding_value=0.)
@@ -45,7 +39,7 @@ class Application:
         tensors, targets = [], []
         for waveform, _, label, *_ in batch:
             tensors += [waveform]
-            targets += [self.get_index(label)]
+            targets += [torch.tensor(self.labels.index(label))]
         tensors = self.pad_sequence(tensors)
         targets = torch.stack(targets)
         return tensors, targets
@@ -53,6 +47,27 @@ class Application:
     def load_trainloader(self):
         self.train_loader = torch.utils.data.DataLoader(dataset=self.train_set, batch_size=self.batch_size, shuffle=True, collate_fn=self.collate_fn)
         self.test_loader = torch.utils.data.DataLoader(dataset=self.test_set, batch_size=self.batch_size, shuffle=True, collate_fn=self.collate_fn)
+
+    def gros_train_sa_mere(self):
+        optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
+        i = 0
+        while True:
+            for audio, label in tqdm(self.train_loader):
+                audio = audio.to(self.device)
+                label = label.to(self.device)
+                audio = transform(audio)
+                pred = self.model.forward(audio)
+                loss = F.nll_loss(pred.squeeze(), label)
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+            if (i % self.epochs == 0 and i != 0):
+                self.save_model()
+                self.model = neural_network.NeuralNetwork().to(self.device)
+                self.model_path += "I"
+            i += 1
+        print("sukssèsfoule trèning")
+        return 0
 
     def train_model(self):
         losses = []
