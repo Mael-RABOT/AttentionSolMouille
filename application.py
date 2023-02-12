@@ -75,7 +75,6 @@ class Application:
             for audio, label in tqdm(self.train_loader):
                 audio = audio.to(self.device)
                 label = label.to(self.device)
-                audio = transform(audio)
                 pred = self.model.forward(audio)
                 loss = F.nll_loss(pred.squeeze(), label)
                 optimizer.zero_grad()
@@ -98,7 +97,6 @@ class Application:
         correct = 0
         total = 0
         for data, target in self.test_loader:
-            data = transform(data)
             pred = self.model.forward(data)
             pred = pred.argmax(dim=-1)
             correct += pred.squeeze().eq(target).sum().item()
@@ -109,12 +107,8 @@ class Application:
     def execute_predict(self, path):
         waveform, sample_rate = torchaudio.load(path)
         waveform = waveform.unsqueeze(1)
-        waveform = transform(waveform)
         label = self.model.forward(waveform)
         return label[0][0].argmax(dim=0).item()
-
-
-transform = torchaudio.transforms.Resample(orig_freq=16000, new_freq=8000)
 
 """
 def test(self):
