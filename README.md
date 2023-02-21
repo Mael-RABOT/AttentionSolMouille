@@ -2,6 +2,8 @@
 
 ## AI voice recognition and dungeon crawler
 
+/!\ the ai part isn't fully train, therefore the key support for movement is still up /!\
+
 > AI project done alongside the poc AI pool
 > In colaboration with :
 > - [Yohann Mangenot](https://github.com/YohannMgt)
